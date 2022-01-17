@@ -1,6 +1,5 @@
 package proyectoAeropuerto;
 
-import java.util.Iterator;
 import java.util.Scanner;
 
 
@@ -22,7 +21,7 @@ public class Main {
 	public static void insertarDatos(Aeropuerto aero[]) {
 		
 		// CREAMOS UN AEROPUERTO PUBLICO
-		aero[0] = new AeropuertoPublico("asdasd", "123", "$hule", 8000000); 
+		aero[0] = new AeropuertoPublico("AeroPublic", "123", "$hule", 8000000); 
 		aero[0].insertarCompania(new Compania("Aero$hule")); //	CREAMOS UNA COMPAÑIA Y LA INSERTAMOS
 		aero[0].insertarCompania(new Compania("Eskai")); //	CREAMOS OTRA COMPAÑIA
 		
@@ -31,14 +30,18 @@ public class Main {
 		aero[0].getCompania("Eskai").insertarVuelo(new Vuelo("ES23", "$hule", "Odin city", 120.5, 120));
 		
 		//	VERIFICAMOS LA COMPAÑIA, EL ID DEL VUELO Y POR ULTIMO INSERTAMOS UN PASAJERO
-		aero[0].getCompania("Aero$hule").getvuelo("SH12").insertarPasajero(new Pasajero("marlon", "asd123", "$huleno"));;
+		aero[0].getCompania("Aero$hule").getvuelo("SH12").insertarPasajero(new Pasajero("marlon", "asd123", "$huleno"));
 		
 		
 		
 		// CREAMOS UN AEROPUERTO PRIVADO
-		aero[1] = new AeropuertoPrivado("cuico", "santiasco", "chule");
+		aero[1] = new AeropuertoPrivado("AeroCuico", "santiasco", "chule");
 		aero[1].insertarCompania(new Compania("$hules cuicos")); //	CREAMOS UNA COMPAÑIA Y LA INSERTAMOS
 		aero[1].insertarCompania(new Compania("Eskai premium")); //	CREAMOS OTRA COMPAÑIA
+		
+		// INSERTAMOS LAS EMPRESAS 
+		String empresas[] = {"litioVendio","cobreRobao"};
+		((AeropuertoPrivado)aero[1]).insertarEmpresas(empresas); //	HACEMOS DOWNCAST PARA ACCEDER AL PETODO DE LA CLASE HIJA
 				
 		//	VERIFICAMOS SI LA COMPAÑIA EXISTE E INSERTAMOS UN NUEVO ARREGLO
 		aero[1].getCompania("$hules cuicos").insertarVuelo(new Vuelo("ABC1", "$hule", "chilezuela", 250.5, 120));
@@ -51,6 +54,9 @@ public class Main {
 	public static void menu() {
 		
 		int op;
+		String nomAero, nomCompania, origen,destino;
+		Aeropuerto aero;
+		Compania compania = null;
 		
 		do {
 			System.out.println("\t.:MENU:.");
@@ -60,7 +66,7 @@ public class Main {
 			System.out.println("4) Mostrar lista de vuelo por compañia");
 			System.out.println("5) Lista posibles vuelos (origen / destino)");
 			System.out.println("6) SALIR");
-			System.out.print("\n ¿Opción?");
+			System.out.print("\n ¿Opción? ");
 			op=scanner.nextInt();
 			
 			switch (op) {
@@ -114,7 +120,14 @@ public class Main {
 						}
 						break;
 					
-				case 5:
+				case 5:	scanner.nextLine();
+						System.out.print("Digite la ciudad de origen: ");
+						origen = scanner.nextLine();
+						System.out.print("Digite la ciudad de destino: ");
+						destino = scanner.nextLine();
+						
+						mostrarVueloOrigenDestino(origen, destino, aeropuerto);
+						
 						break;
 					
 				case 6: // SALIR
@@ -216,4 +229,61 @@ public class Main {
 		
 	}
 	
+	
+	//	---------------------- OPCION 5 ----------------------
+	public static Vuelo[] buscarVueloOrigenDestino(String origen, String destino, Aeropuerto aeropuerto[]) {
+		Vuelo vuelo;
+		int contador=0;
+		Vuelo listaVuelos[];
+		
+		//	BUCLES ANIDADOS PARA RECORRER CADA ARREGLO DESDE LA CLASE PADRE
+		
+		for (int i = 0; i < aeropuerto.length; i++) { // RECORREMOS LOS AEROPUERTOS
+			for (int j = 0; j < aeropuerto[i].getNumCompania(); j++) { //	RECORREMOS LAS COMPAÑIAS
+				for (int k = 0; k < aeropuerto[i].getCompania(j).getNumVuelo(); k++) { // 	RECORREMOS LOS VUELOS
+					vuelo = aeropuerto[i].getCompania(j).getVuelo(k);
+					if ((origen.equals(vuelo.getCiudadOrigen())) && (destino.equals(vuelo.getCiudadDestino()))) {
+						contador++; //	CAPTURAMOS LA CANTIDAD DE COINCIDENCIAS PARA LUEGO PASARLAS AL LARGO DEL ARREGLO FINAL
+					}
+				}
+			}
+		}
+		
+		listaVuelos = new Vuelo[contador]; // ARREGLO PARA GUARDAR COINCIDENCIAS ENCONTRADAS
+		int q=0; // ITERADOR AUXILIAR
+			
+		for (int i = 0; i < aeropuerto.length; i++) { // RECORREMOS LOS AEROPUERTOS
+			for (int j = 0; j < aeropuerto[i].getNumCompania(); j++) { //	RECORREMOS LAS COMPAÑIAS
+				for (int k = 0; k < aeropuerto[i].getCompania(j).getNumVuelo(); k++) { // 	RECORREMOS LOS VUELOS
+					vuelo = aeropuerto[i].getCompania(j).getVuelo(k); // OBTENEMOS EL NOMBRE DEL VUELO
+					if ((origen.equals(vuelo.getCiudadOrigen())) && (destino.equals(vuelo.getCiudadDestino()))) { // COMPARAMOS LAS CIUDADES QUE BUSCO EL USUARIO CON LAS ENCONTRADAS EN EL VUELO
+						listaVuelos[q] = vuelo; //	RELLENAMOS EL ARREGLO SEGUN EL ITERADOR AUXILIAR
+						q++;
+					}
+				}
+			}
+		}
+		return listaVuelos; // RETORNAMOS LA LISTA DE VUELOS
+		}
+	
+	
+	public static void mostrarVueloOrigenDestino(String origen, String destino, Aeropuerto aeropuerto[]) {
+		Vuelo vuelo[];
+		vuelo = buscarVueloOrigenDestino(origen, destino, aeropuerto);
+		if (vuelo.length==0) {
+			System.out.println("No existen vuelos de ese origen/destino");
+		} else {
+			System.out.println("\nCoincidencias encontradas");
+			for (int i = 0; i < vuelo.length; i++) {
+				System.out.println("\nIdentificador: "+vuelo[i].getIdentificador());
+				System.out.println("Origen: "+vuelo[i].getCiudadOrigen());
+				System.out.println("Destino: "+vuelo[i].getCiudadDestino());
+				System.out.println("Precio: $"+vuelo[i].getPrecio());
+				System.out.println("Capacidad total: "+vuelo[i].getMunMaxPasajeros());
+				System.out.println("Asientos usados actualmente: "+vuelo[i].getMunActualPasajeros());
+			}
+		}
+		
+		
+	}
 }
